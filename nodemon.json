@@ -1,0 +1,6 @@
+{
+  "watch": ["src"],
+  "ignore": ["history/*"],
+  "ext": "js,json",
+  "exec": "node server.js"
+}
