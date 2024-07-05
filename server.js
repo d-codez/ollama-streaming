@@ -3,6 +3,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const session = require('express-session');
 const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -20,8 +21,13 @@ app.use(
   })
 );
 
+const historyDir = path.join(__dirname, 'history');
+if (!fs.existsSync(historyDir)) {
+  fs.mkdirSync(historyDir);
+}
+
 const loadHistory = (userId) => {
-  const filePath = `./history/${userId}.json`;
+  const filePath = path.join(historyDir, `${userId}.json`);
   if (fs.existsSync(filePath)) {
     try {
       const data = fs.readFileSync(filePath, 'utf-8');
@@ -35,7 +41,7 @@ const loadHistory = (userId) => {
 };
 
 const saveHistory = (userId, history) => {
-  const filePath = `./history/${userId}.json`;
+  const filePath = path.join(historyDir, `${userId}.json`);
   try {
     fs.writeFileSync(filePath, JSON.stringify(history, null, 2));
   } catch (error) {
@@ -62,7 +68,7 @@ wss.on('connection', (ws, req) => {
     const fullPrompt = createPrompt(conversationHistory, prompt);
 
     const options = {
-      hostname: 'localhost',
+      hostname: '127.0.0.1',
       port: 11434,
       path: '/api/generate',
       method: 'POST',
@@ -70,6 +76,8 @@ wss.on('connection', (ws, req) => {
         'Content-Type': 'application/json',
       },
     };
+
+    console.log(fullPrompt);
 
     const req = http.request(options, (res) => {
       res.on('data', (chunk) => {
